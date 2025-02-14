@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Stock Search Extension",
+  "name": "Auto Search Extension",
   "description": "Search for stock symbols on Bing.",
   "version": "1.0",
   "permissions": [
