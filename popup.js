@@ -1,38 +1,48 @@
-let searchList = [
-  "share price of Tata Steel",
-  "share price of Tata Consultancy Services (TCS)",
-  "share price of Tata Motors",
-  "share price of Tata Power",
-  "share price of Tata Chemicals",
-  "share price of Tata Global Beverages",
-  "share price of Tata Consumer Products",
-  "share price of Tata Communications",
-  "share price of Tata Teleservices",
-  "share price of Tata Group",
-  "share price of Tata Capital",
-  "share price of Tata Elxsi",
-  "share price of Tata Financial Services",
-  "share price of Tata Trusts",
-  "share price of Tata International",
-  "share price of Tata AutoComp Systems",
-  "share price of Tata Projects",
-  "share price of Tata Projects Ltd.",
-  "share price of Tata Swach",
-  "share price of Tata AIG",
-  "share price of Tata Retail",
-  "share price of Tata Sky",
-  "share price of Tata Motors Finance",
-  "share price of Tata Tea",
-  "share price of Tata Starbucks",
-  "share price of Tata Housing Development Company",
-  "share price of Tata Renewables",
-  "share price of Tata Advanced Systems",
-  "share price of Tata Aerospace & Defence",
-  "share price of Tata Research Development & Design Centre",
-  "share price of Tata Ficosa Automotive"
-];
+// Add these functions at the beginning of your file
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  // Update the theme toggle icon
+  const icon = document.querySelector('.theme-toggle .icon');
+  icon.textContent = theme === 'light' ? 'L' : 'D';
+  chrome.storage.local.set({ theme });
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+  setTheme(newTheme);
+}
+
+// Initialize search list from storage or default to empty array
+let searchList = [];
 
 let autoSearchInterval;
+
+// Function to save search list to storage
+function saveSearchList() {
+  chrome.storage.local.set({ searchList });
+}
+
+// Function to save delay value
+function saveDelayValue(delay) {
+  chrome.storage.local.set({ delaySeconds: delay });
+}
+
+// Function to render search list
+function renderSearchList() {
+  const container = document.getElementById('searchList');
+  container.innerHTML = '';
+
+  searchList.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    div.innerHTML = `
+      <span>${item}</span>
+      <button class="remove-btn" data-index="${index}">x</button>
+    `;
+    container.appendChild(div);
+  });
+}
 
 // Function to send a search request
 function sendSearchRequest(stockSymbol, callback) {
@@ -47,6 +57,12 @@ function sendSearchRequest(stockSymbol, callback) {
 // Function to start the automatic search
 function startAutomaticSearch() {
   let index = 0;
+  const delaySeconds = parseInt(document.getElementById('delaySeconds').value, 10);
+
+  // Clear existing interval if any
+  if (autoSearchInterval) {
+    clearInterval(autoSearchInterval);
+  }
 
   autoSearchInterval = setInterval(() => {
     if (index < searchList.length) {
@@ -55,14 +71,88 @@ function startAutomaticSearch() {
     } else {
       clearInterval(autoSearchInterval);
     }
-  }, 7000); // 7 seconds delay
+  }, delaySeconds * 1000);
+}
+
+// Update your loadSavedValues function
+function loadSavedValues() {
+  chrome.storage.local.get(['searchList', 'delaySeconds', 'theme'], (result) => {
+    if (result.searchList) {
+      searchList = result.searchList;
+      renderSearchList();
+    }
+    if (result.delaySeconds) {
+      document.getElementById('delaySeconds').value = result.delaySeconds;
+    }
+    if (result.theme) {
+      setTheme(result.theme);
+    }
+  });
+}
+
+// Function to handle adding search terms
+function addSearchTerm() {
+  const input = document.getElementById('newSearch');
+  const inputValue = input.value.trim();
+
+  if (inputValue) {
+    // Split input by commas and trim each value
+    const newTerms = inputValue.split(',')
+      .map(term => term.trim())
+      .filter(term => term.length > 0);
+
+    // Add all valid terms to the search list
+    searchList.push(...newTerms);
+    input.value = '';
+    saveSearchList();
+    renderSearchList();
+  }
 }
 
 // Add event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // document.getElementById('singleSearchButton').addEventListener('click', () => {
-  //   sendSearchRequest(searchList[0]);
-  // });
+  // Load saved values
+  loadSavedValues();
 
+  // Add new search term (click handler)
+  document.getElementById('addSearch').addEventListener('click', addSearchTerm);
+
+  // Add new search term (enter key handler)
+  document.getElementById('newSearch').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addSearchTerm();
+    }
+  });
+
+  // Remove search term
+  document.getElementById('searchList').addEventListener('click', (e) => {
+    if (e.target.classList.contains('remove-btn')) {
+      const index = parseInt(e.target.dataset.index, 10);
+      searchList.splice(index, 1);
+      saveSearchList();
+      renderSearchList();
+    }
+  });
+
+  // Clear all search terms
+  document.getElementById('clearAll').addEventListener('click', () => {
+    searchList = [];
+    saveSearchList();
+    renderSearchList();
+  });
+
+  // Start automatic search
   document.getElementById('autoSearchButton').addEventListener('click', startAutomaticSearch);
+
+  // Save delay value when changed
+  document.getElementById('delaySeconds').addEventListener('change', (e) => {
+    const delay = parseInt(e.target.value, 10);
+    if (delay >= 1 && delay <= 60) {
+      saveDelayValue(delay);
+    }
+  });
+
+  // Theme toggle
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 });

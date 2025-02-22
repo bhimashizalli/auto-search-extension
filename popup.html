@@ -1,38 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="light">
 
 <head>
-  <title>Auto Search</title>
+  <title>Stock Search Automation</title>
   <style>
+    :root[data-theme="light"] {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --item-bg: #e9ecef;
+      --item-border: #ced4da;
+      --button-bg: #4CAF50;
+      --button-hover: #45a049;
+      --remove-color: #dc3545;
+      --remove-hover: #c82333;
+    }
+
+    :root[data-theme="dark"] {
+      --bg-color: #1e1e1e;
+      --text-color: #ffffff;
+      --item-bg: #2d2d2d;
+      --item-border: #404040;
+      --button-bg: #2e7d32;
+      --button-hover: #246b27;
+      --remove-color: #f44336;
+      --remove-hover: #d32f2f;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      padding: 10px;
+      padding: 16px;
+      min-width: 300px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
     }
 
     h3 {
       margin-top: 0;
+      margin-bottom: 16px;
     }
 
     button {
-      background-color: #4CAF50;
+      background-color: var(--button-bg);
       color: white;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
+      margin: 4px;
+      transition: background-color 0.2s ease;
     }
 
     button:hover {
-      background-color: #45a049;
+      background-color: var(--button-hover);
+    }
+
+    .search-item {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--item-bg);
+      border-radius: 20px;
+      padding: 6px 12px;
+      margin: 4px;
+      border: 1px solid var(--item-border);
+      transition: all 0.2s ease;
+    }
+
+    .search-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-item span {
+      margin-right: 8px;
+    }
+
+    .remove-btn {
+      background: none;
+      color: var(--remove-color);
+      padding: 0;
+      margin: 0;
+      font-size: 16px;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .remove-btn:hover {
+      background: none;
+      color: var(--remove-hover);
+    }
+
+    input {
+      padding: 8px;
+      margin: 4px;
+      border-radius: 4px;
+      border: 1px solid var(--item-border);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    #searchList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .controls {
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      cursor: pointer;
+    }
+
+    .theme-toggle button {
+      background: none;
+      border: 1px solid var(--item-border);
+      color: var(--text-color);
+      font-size: 14px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .theme-toggle button:hover {
+      background: var(--item-bg);
+    }
+
+    .theme-toggle .icon {
+      font-size: 12px;
     }
   </style>
 </head>
 
 <body>
-  <h3>Auto Search</h3>
+  <div class="theme-toggle">
+    <button id="themeToggle">
+      <span class="icon">☀</span>
+      <span class="label">Theme</span>
+    </button>
+  </div>
 
-  <div>
-    <!-- <button id="singleSearchButton">Start Single Search</button> -->
-    <button id="autoSearchButton">Start Auto Search</button>
+  <h3>Stock Search Automation</h3>
+
+  <div class="controls">
+    <input type="text" id="newSearch" placeholder="Enter search term">
+    <button id="addSearch">Add</button>
+  </div>
+
+  <div class="controls">
+    <label>Delay (seconds):
+      <input type="number" id="delaySeconds" value="7" min="1" max="60">
+    </label>
+  </div>
+
+  <div id="searchList"></div>
+
+  <div class="controls">
+    <button id="autoSearchButton">Start Automatic Search</button>
+    <button id="clearAll">Clear All</button>
   </div>
 
   <script src="popup.js"></script>
